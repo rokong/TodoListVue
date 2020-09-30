@@ -2,6 +2,18 @@
 
 > Simple Vue.js Project
 
+## Development Environment Configuration
+#### install vscode extension
+- Dracula Official
+- Visual Studio IntelliCode
+- Vue VSCode Snippets (+ Vetur)
+#### git configuration
+- git config --global user.name "\<YourName\>"
+- git config --global user.email "\<YourEmail\>"
+#### chrome extension
+- install Vue.js devtools
+- extension configuration > access to file URL
+
 ## Build Setup
 
 ``` bash
