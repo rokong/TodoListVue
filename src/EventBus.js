@@ -1,3 +1,7 @@
 import Vue from 'vue';
-var eventBus = new Vue();
-export default eventBus;
+
+var vm = new Vue({
+    name : "EventBus"
+});
+
+export default vm;

@@ -1,8 +1,13 @@
 import Vue from 'vue'
-import TodoList from './components/TodoList.vue'
+import App from './App'
+import axios from 'axios'
+import 'bootstrap/dist/css/bootstrap.css'
+import ES6Promise from 'es6-promise'
+ES6Promise.polyfill()
 
 Vue.config.productionTip = false
+Vue.prototype.$axios = axios
 
 new Vue({
-  render: h => h(TodoList),
+  render: h => h(App),
 }).$mount('#app')

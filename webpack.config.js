@@ -38,7 +38,11 @@ module.exports = {
         options: {
           name: '[name].[ext]?[hash]'
         }
-      }
+      },
+      {
+        test: /\.(ttf|eot|svg|woff|woff2)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+        loader: 'file-loader'
+      },
     ]
   },
   resolve: {
@@ -50,7 +54,16 @@ module.exports = {
   devServer: {
     historyApiFallback: true,
     noInfo: true,
-    overlay: true
+    overlay: true,
+    proxy: {
+      '/api' : {
+        target: 'http://sample.bmaster.kro.kr',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/api' : ''
+        }
+      }
+    }
   },
   performance: {
     hints: false
