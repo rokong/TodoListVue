@@ -33,21 +33,15 @@
 </template>
 
 <script>
-import eventBus from '../EventBus.js';
+import Constant from '../Constant';
+import { mapState } from 'vuex';
+
 export default {
     name : "contactForm",
-    props : {
-        mode : { type:String, default:'add' },
-        contact : {
-            type:Object,
-            default : function(){
-                return { no:'', name:'', tel:'', address:'', photo:'' }
-            }
-        }
+    data : function() {
+        return { mode:"add" }
     },
-    mounted : function() {
-        this.$refs.name.focus()
-    },
+    props : [ 'no' ],
     computed : {
         btnText : function() {
             if (this.mode != 'update') return '추 가';
@@ -56,18 +50,42 @@ export default {
         headingText : function() {
             if (this.mode != 'update') return '새로운 연락처 추가';
             else return '연락처 변경';
+        },
+        ...mapState([ 'contact', 'contactlist' ])
+    },
+    beforeRouteEnter(to, from, next){
+        if(to.name.indexOf('add') > -1){
+            next(vm => {
+                vm.mode = "add";
+                vm.$store.dispatch(Constant.INITIALIZE_CONTACT_ONE);
+            });
+            
+        }else if(to.name.indexOf('update') > -1){
+            next(vm => {
+                vm.mode = "update";
+                vm.$store.dispatch(Constant.FETCH_CONTACT_ONE, { no: vm.no });
+            });
+            
+        }else{
+            console.log("invalid access");
+            return;
         }
+    },
+    mounted : function() {
+        this.$refs.name.focus();
     },
     methods : {
         submitEvent : function() {
             if (this.mode == "update") {
-                eventBus.$emit("updateSubmit", this.contact)
+                this.$store.dispatch(Constant.UPDATE_CONTACT);
+                this.$router.push({ name: 'contacts', query: { page: this.contactlist.pageno }});
             } else {
-                eventBus.$emit("addSubmit", this.contact);
+                this.$store.dispatch(Constant.ADD_CONTACT);
+                this.$router.push({name: 'contacts', query: { page: 1 }});
             }
         },
         cancelEvent : function() {
-            eventBus.$emit("cancel");
+            this.$router.push({ name: 'contacts', query: { page: this.contactlist.pageno }});
         }
     }
 }

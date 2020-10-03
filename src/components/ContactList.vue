@@ -1,8 +1,8 @@
 <template>
     <div>
     <p class="addnew">
-        <button class="btn btn-primary" @click="addContact()">
-            새로운 연락처 추가하기</button>
+        <router-link class="btn btn-primary" v-bind:to="{ name:'addcontact' }">
+            새로운 연락처 추가하기</router-link>
     </p>
     <div id="example">
     <table id="list" class="table table-striped table-bordered table-hover">
@@ -12,70 +12,83 @@
                 <th>사진</th><th>편집/삭제</th>
             </tr>
         </thead>
-        <tbody id="contacts">
+        <tbody id="contacts" >
             <tr v-for="contact in contactlist.contacts" :key="contact.no">
                 <td>{{contact.name}}</td>
                 <td>{{contact.tel}}</td>
                 <td>{{contact.address}}</td>
-                <td><img class="thumbnail" :src="contact.photo"
+                <td><img class="thumbnail" :src="contact.photo" 
                     @click="editPhoto(contact.no)" /></td>
                 <td>
                     <button class="btn btn-primary" 
                         @click="editContact(contact.no)">편집</button>
                     <button class="btn btn-primary" 
-                        @click="deleteContact(contact.no)">삭제</button>                </td>
+                        @click="deleteContact(contact.no)">삭제</button>
+                </td>
             </tr>
         </tbody>
     </table>
-    </div>
-        <paginate ref="pagebuttons"
-            :page-count="totalPage"
-            :page-range="7"
-            :margin-pages="3"
-            :click-handler="pageChanged"
-            :prev-text="'이전'"
-            :next-text="'다음'"
-            :container-class="'pagination'"
-            :page-class="'page-item'">
-        </paginate>
+    </div>  
+    <paginate ref="pagebuttons"
+        :page-count="totalpage"
+        :page-range="7"
+        :margin-pages="3"
+        :click-handler="pageChanged"
+        :prev-text="'이전'"
+        :next-text="'다음'"
+        :container-class="'pagination'"
+        :page-class="'page-item'">
+    </paginate>
+    <router-view></router-view>
     </div>
 </template>
 
 <script>
-import eventBus from '../EventBus';
+import Constant from '../Constant';
+import { mapState } from 'vuex';
 import Paginate from 'vuejs-paginate';
 
 export default {
     name : 'contactList',
     components : { Paginate },
-    props : [ 'contactlist' ],
     computed : {
-        totalPage : function(){
+        totalpage : function() {
             return Math.floor((this.contactlist.totalcount - 1) / this.contactlist.pagesize) + 1;
+        },
+        ...mapState(['contactlist'])
+    },
+    mounted : function() {
+        var page = 1;
+        if (this.$route.query && this.$route.query.page) {
+            page = parseInt(this.$route.query.page);
+        }
+        this.$store.dispatch(Constant.FETCH_CONTACTS, { pageno:page });
+        this.$refs.pagebuttons.selected = page-1;
+    },
+    watch : {
+        '$route' : function(to) {
+            if (to.query.page && to.query.page != this.contactlist.pageno) {
+                var page = to.query.page;
+                this.$store.dispatch(Constant.FETCH_CONTACTS, { pageno:page });
+                this.$refs.pagebuttons.selected = page-1;
+            }
         }
     },
-    // watch : {
-    //     ['contactlist.pageno'] : function() {
-    //         this.$refs.pagebuttons.selected = this.contactlist.pageno-1;
-    //     }
-    // },
     methods : {
         pageChanged : function(page) {
-            eventBus.$emit("pageChanged", page);
-        },
-        addContact : function() {
-            eventBus.$emit("addContactForm");
+            this.$router.push({ name: 'contacts', query: { page: page }})
         },
         editContact : function(no) {
-            eventBus.$emit("editContactForm", no)
+            this.$router.push({ name: 'updatecontact', params : { no:no } })
         },
         deleteContact : function(no) {
             if (confirm("정말로 삭제하시겠습니까?") == true) {
-                eventBus.$emit('deleteContact', no);
+                this.$store.dispatch(Constant.DELETE_CONTACT, {no:no});
+                this.$router.push({ name: 'contacts' })
             }
         },
         editPhoto : function(no) {
-            eventBus.$emit("editPhoto", no);
+            this.$router.push({ name: 'updatephoto', params: { no: no } })
         }
     }
 }
